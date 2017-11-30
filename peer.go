@@ -15,6 +15,7 @@ var (
 	nick        string
 )
 
+// StartServer initializes the first peer as a server
 func StartServer() error {
 	IP := fmt.Sprintf("127.0.0.1:%d", PORT)
 	tcpAddr, err := net.ResolveTCPAddr("tcp", IP)
@@ -36,12 +37,14 @@ func StartServer() error {
 	}
 }
 
+// handleConnection handles an incoming connection
 func handleConnection(conn net.Conn) {
 	remoteAddr := conn.RemoteAddr().(*net.TCPAddr).IP
 	fmt.Printf("[*] Handling connection from %s\n", remoteAddr)
 	go receive(conn)
 }
 
+// receieve continuously receieves messages from a connection
 func receive(conn net.Conn) {
 	for {
 		msg, err := readFromConn(conn)
@@ -61,6 +64,8 @@ func receive(conn net.Conn) {
 		}
 	}
 }
+
+// readFromConn reads an incoming message from a connection
 func readFromConn(conn net.Conn) (*Message, error) {
 	dec := json.NewDecoder(conn)
 	msg := new(Message)
@@ -70,6 +75,7 @@ func readFromConn(conn net.Conn) (*Message, error) {
 	return msg, nil
 }
 
+// createConnection establishes a connection between the peer and ip
 func createConnection(ip string) (net.Conn, error) {
 	conn, err := net.Dial("tcp", ip)
 	if err != nil {
@@ -78,6 +84,7 @@ func createConnection(ip string) (net.Conn, error) {
 	return conn, nil
 }
 
+// ConnectToServer connects the peer to the first peer
 func ConnectToServer(ip string) error {
 	fmt.Printf("[*] Connecting to %s\n", ip)
 	conn, err := createConnection(ip)
@@ -98,6 +105,7 @@ func ConnectToServer(ip string) error {
 	return nil
 }
 
+// HandleInput reads user input, encodes it as a message, and sends it
 func HandleInput() {
 	for {
 		reader := bufio.NewReader(os.Stdin)

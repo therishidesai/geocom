@@ -11,12 +11,14 @@ const (
 	MESSAGE_PUBLIC     = "PUBLIC"
 )
 
+// Message is a struct that represents a message
 type Message struct {
 	Kind     string
 	Contents string
 	Author   string
 }
 
+// CreateMessage creates a new message
 func CreateMessage(kind string, contents string, author string) *Message {
 	return &Message{
 		Kind:     kind,
@@ -25,6 +27,7 @@ func CreateMessage(kind string, contents string, author string) *Message {
 	}
 }
 
+// Send sends the message to all the connections
 func (this *Message) Send(peers map[string]net.Conn) error {
 	for name, conn := range peers {
 		if name != this.Author {
@@ -36,6 +39,7 @@ func (this *Message) Send(peers map[string]net.Conn) error {
 	return nil
 }
 
+// SendTo sends the message to a specific connection
 func (this *Message) SendTo(conn net.Conn) error {
 	enc := json.NewEncoder(conn)
 	if err := enc.Encode(this); err != nil {
