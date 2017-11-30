@@ -17,7 +17,7 @@ var (
 
 // StartServer initializes the first peer as a server
 func StartServer() error {
-	IP := fmt.Sprintf("127.0.0.1:%d", PORT)
+	IP := fmt.Sprintf(":%d", PORT)
 	tcpAddr, err := net.ResolveTCPAddr("tcp", IP)
 	if err != nil {
 		return err
