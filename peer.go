@@ -2,10 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
-	"strings"
 )
 
 const PORT = 5000
@@ -48,18 +48,26 @@ func receive(conn net.Conn) {
 		if err != nil {
 			return
 		}
-		if strings.HasPrefix(msg, "MSG:") {
-			msg = msg[4:]
-			fmt.Printf("[*] Received: %s\n", msg)
-		} else {
-			fmt.Printf("[*] Initializing connection to %s\n", msg)
-			connections[msg] = conn
-			conn.Write([]byte(fmt.Sprintln(nick)))
+		switch msg.Kind {
+		case MESSAGE_CONNECT:
+			fmt.Printf("[*] Initializing connection to %s\n", msg.Contents)
+			connections[msg.Contents] = conn
+			response := CreateMessage(MESSAGE_CONNECT, "", nick)
+			response.Send(connections)
+		case MESSAGE_PUBLIC:
+			fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+		default:
+			fmt.Printf("[*] Bad message.")
 		}
 	}
 }
-func readFromConn(conn net.Conn) (string, error) {
-	return bufio.NewReader(conn).ReadString('\n')
+func readFromConn(conn net.Conn) (*Message, error) {
+	dec := json.NewDecoder(conn)
+	msg := new(Message)
+	if err := dec.Decode(msg); err != nil {
+		return nil, err
+	}
+	return msg, nil
 }
 
 func createConnection(ip string) (net.Conn, error) {
@@ -77,12 +85,15 @@ func ConnectToServer(ip string) error {
 		fmt.Println("[*] Failed to connect to server")
 		return err
 	}
-	conn.Write([]byte(fmt.Sprintln(nick)))
-	msg, err := readFromConn(conn)
+
+	msg := CreateMessage(MESSAGE_CONNECT, "", nick)
+	msg.SendTo(conn)
+
+	msg, err = readFromConn(conn)
 	if err != nil {
 		return err
 	}
-	connections[msg] = conn
+	connections[msg.Author] = conn
 	go receive(conn)
 	return nil
 }
@@ -92,11 +103,7 @@ func HandleInput() {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Send message: ")
 		text, _ := reader.ReadString('\n')
-		for name, conn := range connections {
-			_, err := conn.Write([]byte(fmt.Sprintf("MSG:%s", text)))
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
+		msg := CreateMessage(MESSAGE_PUBLIC, text, nick)
+		msg.Send(connections)
 	}
 }
