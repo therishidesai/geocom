@@ -9,6 +9,7 @@ const (
 	MESSAGE_CONNECT    = "CONNECT"
 	MESSAGE_DISCONNECT = "DISCONNECT"
 	MESSAGE_PUBLIC     = "PUBLIC"
+	MESSAGE_SHOW       = "SHOW"
 )
 
 // Message is a struct that represents a message

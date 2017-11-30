@@ -9,6 +9,7 @@ func main() {
 
 	numArgs := len(os.Args)
 	var ip string
+	var nick string
 
 	if numArgs == 2 {
 		nick = os.Args[1]
@@ -20,16 +21,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	var client *Client
 	if ip == "" {
-		go StartServer()
+		client = CreateClient(nick, true)
+		go client.StartServer()
 	} else {
-		err := ConnectToServer(ip)
+		client = CreateClient(nick, false)
+		fmt.Printf("[*] Connecting to %s\n", ip)
+		err := client.connectToServer(ip)
 		if err != nil {
 			fmt.Printf("[*] Failed to connect to %s\n", ip)
 			os.Exit(1)
 		}
 		fmt.Printf("[*] Connected to %s\n", ip)
 	}
-
-	HandleInput()
+	client.handleInput()
 }
