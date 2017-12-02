@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"net"
-	"os"
+
 )
 
 const PORT = 5000
@@ -14,14 +13,15 @@ type Client struct {
 	connections map[string]net.Conn
 	nick        string
 	server      bool
+	ui          *UI
 }
 
-func CreateClient(nick string, isServer bool) *Client {
+func CreateClient(nick string, isServer bool, ui *UI) *Client {
 	return &Client{
 		connections: make(map[string]net.Conn),
 		nick:        nick,
 		server:      isServer,
-	}
+	    ui:          ui}
 }
 
 // StartServer initializes the client as a server
@@ -52,8 +52,8 @@ func (this *Client) StartServer() error {
 
 // handleConnection handles an incoming connection
 func (this *Client) handleConnection(conn net.Conn) {
-	remoteAddr := conn.RemoteAddr().(*net.TCPAddr).IP
-	fmt.Printf("[*] Handling connection from %s\n", remoteAddr)
+	//remoteAddr := conn.RemoteAddr().(*net.TCPAddr).IP
+	//fmt.Printf("[*] Handling connection from %s\n", remoteAddr)
 	go this.receive(conn)
 }
 
@@ -66,21 +66,23 @@ func (this *Client) receive(conn net.Conn) {
 		}
 		switch msg.Kind {
 		case MESSAGE_CONNECT:
-			fmt.Printf("[*] Initializing connection to %s\n", msg.Author)
+			//fmt.Printf("[*] Initializing connection to %s\n", msg.Author)
 			err := this.connectToPeer(msg, conn)
 			if err != nil {
-				fmt.Printf("[*] Failed to connect to %s\n", msg.Author)
+				//fmt.Printf("[*] Failed to connect to %s\n", msg.Author)
 			} else {
-				fmt.Printf("[*] Established connection to %s\n", msg.Author)
+				//fmt.Printf("[*] Established connection to %s\n", msg.Author)
 			}
 		case MESSAGE_PUBLIC:
 			// Server receives request to send message to everyone
-			fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+			//fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+			this.ui.updateMessage(msg.Author, msg.Contents)
 			msg.Kind = MESSAGE_SHOW
 			msg.Send(this.connections)
 		case MESSAGE_SHOW:
 			// Client receieves request from server to show a message
-			fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+			//fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+			this.ui.updateMessage(msg.Author, msg.Contents)
 		default:
 			fmt.Printf("[*] Bad message.")
 		}
@@ -115,21 +117,15 @@ func (this *Client) connectToServer(ip string) error {
 }
 
 // HandleInput reads user input, encodes it as a message, and sends it
-func (this *Client) handleInput() {
-	for {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Send message: ")
-		text, _ := reader.ReadString('\n')
-		if this.server {
-			// We are the server, so send the message to all peers
-			fmt.Printf("[*] %s said: %s\n", this.nick, text)
-			msg := CreateMessage(MESSAGE_SHOW, text, this.nick)
-			msg.Send(this.connections)
-		} else {
-			// We are a client, so send the message to the server
-			msg := CreateMessage(MESSAGE_PUBLIC, text, this.nick)
-			// TODO: Clean this up since we know there's only going to be one connection (to the server)
-			msg.Send(this.connections)
-		}
+func (this *Client) handleInput(text string) {
+	if this.server {
+		// We are the server, so send the message to all peers
+		msg := CreateMessage(MESSAGE_SHOW, text, this.nick)
+		msg.Send(this.connections)
+	} else {
+		// We are a client, so send the message to the server
+		msg := CreateMessage(MESSAGE_PUBLIC, text, this.nick)
+		// TODO: Clean this up since we know there's only going to be one connection (to the server)
+		msg.Send(this.connections)
 	}
 }
