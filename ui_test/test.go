@@ -19,24 +19,16 @@ var posts = []post{
 }
 
 func main() {
-	sidebar := tui.NewVBox(
-		tui.NewLabel("USERS"),
-		tui.NewSpacer(),
-	)
-	sidebar.SetBorder(true)
-
 	history := tui.NewVBox()
 	history.SetBorder(true)
 	history.Append(tui.NewSpacer())
 
-	for _, m := range posts {
-		history.Append(tui.NewHBox(
-			tui.NewLabel(m.time),
-			tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", m.username))),
-			tui.NewLabel(m.message),
-			tui.NewSpacer(),
-		))
-	}
+	history.Append(tui.NewHBox(
+		tui.NewLabel(time.Now().Format("15:04")),
+		tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", "root"))),
+		tui.NewLabel("Welcome to geocom, press ESC to quit."),
+		tui.NewSpacer(),
+	))
 
 	input := tui.NewEntry()
 	input.SetFocused(true)
@@ -58,8 +50,8 @@ func main() {
 		))
 		input.SetText("")
 	})
-
-	root := tui.NewHBox(sidebar, chat)
+	
+	root := tui.NewHBox(chat)
 
 	ui := tui.New(root)
 	ui.SetKeybinding("Esc", func() { ui.Quit() })
