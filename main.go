@@ -45,7 +45,7 @@ func main() {
 		ui.input.SetText("")
 	})
 
-	if err := ui.root.Run(); err != nil {
+	if err := ui.view.Run(); err != nil {
 		panic(err)
 	}
 

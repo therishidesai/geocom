@@ -10,7 +10,7 @@ import (
 type UI struct {
 	history *tui.Box
 	input   *tui.Entry
-	root    tui.UI
+	view    tui.UI
 }
 
 func CreateUI() *UI {
@@ -44,12 +44,12 @@ func CreateUI() *UI {
 	return &UI{
 		history: history,
 		input:   input,
-		root:    view,
+		view:    view,
 	}
 }
 
 func (this *UI) updateMessage(author string, text string) {
-	this.root.Update(func() {
+	this.view.Update(func() {
 		this.history.Append(tui.NewHBox(
 			tui.NewLabel(time.Now().Format("15:04")),
 			tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", author))),
