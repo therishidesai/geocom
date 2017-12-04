@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-
 )
 
 const PORT = 5000
@@ -21,7 +20,7 @@ func CreateClient(nick string, isServer bool, ui *UI) *Client {
 		connections: make(map[string]net.Conn),
 		nick:        nick,
 		server:      isServer,
-	    ui:          ui}
+		ui:          ui}
 }
 
 // StartServer initializes the client as a server
@@ -43,21 +42,14 @@ func (this *Client) StartServer() error {
 			if err != nil {
 				continue
 			}
-			go this.handleConnection(conn)
+			go this.receive(conn)
 		}
 	} else {
 		return errors.New("Cannot start server as client.")
 	}
 }
 
-// handleConnection handles an incoming connection
-func (this *Client) handleConnection(conn net.Conn) {
-	//remoteAddr := conn.RemoteAddr().(*net.TCPAddr).IP
-	//fmt.Printf("[*] Handling connection from %s\n", remoteAddr)
-	go this.receive(conn)
-}
-
-// receieve continuously receieves messages from a connection
+// receive continuously receive messages from a connection
 func (this *Client) receive(conn net.Conn) {
 	for {
 		msg, err := readFromConn(conn)
@@ -80,11 +72,10 @@ func (this *Client) receive(conn net.Conn) {
 			msg.Kind = MESSAGE_SHOW
 			msg.Send(this.connections)
 		case MESSAGE_SHOW:
-			// Client receieves request from server to show a message
-			//fmt.Printf("[*] %s said: %s\n", msg.Author, msg.Contents)
+			// Client receive request from server to show a message
 			this.ui.updateMessage(msg.Author, msg.Contents)
 		default:
-			fmt.Printf("[*] Bad message.")
+			continue
 		}
 	}
 }

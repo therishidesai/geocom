@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
-	
+
 	"github.com/marcusolsson/tui-go"
 )
 
@@ -31,39 +30,22 @@ func main() {
 		go client.StartServer()
 	} else {
 		client = CreateClient(nick, false, ui)
-		//fmt.Printf("[*] Connecting to %s\n", ip)
 		err := client.connectToServer(ip)
 		if err != nil {
-			//fmt.Printf("[*] Failed to connect to %s\n", ip)
 			os.Exit(1)
 		}
-		//fmt.Printf("[*] Connected to %s\n", ip)
 	}
 
 	ui.input.OnSubmit(func(e *tui.Entry) {
-		ui.history.Append(tui.NewHBox(
-			tui.NewLabel(time.Now().Format("15:04")),
-			tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", client.nick))),
-			tui.NewLabel(e.Text()),
-			tui.NewSpacer(),
-		))
+		if e.Text() == "" {
+			return
+		}
+		ui.updateMessage(nick, e.Text())
 		client.handleInput(e.Text())
 		ui.input.SetText("")
 	})
-	
-	inputBox := tui.NewHBox(ui.input)
-	inputBox.SetBorder(true)
-	inputBox.SetSizePolicy(tui.Expanding, tui.Maximum)
 
-	chat := tui.NewVBox(ui.history, inputBox)
-	chat.SetSizePolicy(tui.Expanding, tui.Expanding)
-	
-	root := tui.NewHBox(chat)
-
-	view := tui.New(root)
-	view.SetKeybinding("Esc", func() { view.Quit() })
-
-	if err := view.Run(); err != nil {
+	if err := ui.view.Run(); err != nil {
 		panic(err)
 	}
 
