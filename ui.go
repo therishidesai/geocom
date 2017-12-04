@@ -10,6 +10,7 @@ import (
 type UI struct {
 	history *tui.Box
 	input   *tui.Entry
+	root    tui.UI
 }
 
 func CreateUI() *UI {
@@ -31,17 +32,29 @@ func CreateUI() *UI {
 	inputBox := tui.NewHBox(input)
 	inputBox.SetBorder(true)
 	inputBox.SetSizePolicy(tui.Expanding, tui.Maximum)
-	
+
+	chat := tui.NewVBox(history, inputBox)
+	chat.SetSizePolicy(tui.Expanding, tui.Expanding)
+
+	root := tui.NewHBox(chat)
+
+	view := tui.New(root)
+	view.SetKeybinding("Esc", func() { view.Quit() })
+
 	return &UI{
 		history: history,
-		input: input} 
+		input:   input,
+		root:    view,
+	}
 }
 
-func (this *UI)  updateMessage(author string, text string) {
-	this.history.Append(tui.NewHBox(
-		tui.NewLabel(time.Now().Format("15:04")),
-		tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", author))),
-		tui.NewLabel(text),
-		tui.NewSpacer(),
-	))
+func (this *UI) updateMessage(author string, text string) {
+	this.root.Update(func() {
+		this.history.Append(tui.NewHBox(
+			tui.NewLabel(time.Now().Format("15:04")),
+			tui.NewPadder(1, 0, tui.NewLabel(fmt.Sprintf("<%s>", author))),
+			tui.NewLabel(text),
+			tui.NewSpacer(),
+		))
+	})
 }
