@@ -4,11 +4,11 @@ Geocom is a P2P(Peer to Peer) chat room where a user can start a server and othe
 
 ![alt text](https://raw.githubusercontent.com/apache8080/geocom/master/geocom_example.png)
 
-## technology
+### technology
 
 Geocom uses the Go networking library to connect two users via TCP. For the TUI we are using the tui-go library.
 
-## building geocom
+### building geocom
 
 ```
 git clone https://github.com/apache8080/geocom.git
@@ -17,15 +17,15 @@ go get github.com/marcusolsson/tui-go
 go build
 ```
 
-## running geocom as the host
+### running geocom as the host
 ```
 ./geocom [nickname]
 ```
 
-## connecting to a geocom host
+### connecting to a geocom host
 ```
 ./geocom [nickname] [IP address of host]
 ```
 
-## contributors
+### contributors
 James Wang (james9909) and Rishi Desai (apahce8080)
